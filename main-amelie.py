@@ -1,11 +1,16 @@
 import pygame, sys
+from alien import Alien
 
 class Game:
     def __init__(self):
-        pass
+        #Alien Setup
+        self.aliens = pygame.sprite.Group()
 
     def run(self):
-        pass
+        #Aliens Run Code
+        self.aliens.draw(screen)
+        alien_sprite = Alien('red', 150, 150)
+        self.aliens.add(alien_sprite)
 
 
 if __name__ == '__main__':
