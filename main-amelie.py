@@ -1,6 +1,10 @@
 import pygame, sys
-from alien import Alien
 import numpy as np
+from random import choice, randint
+
+from alien import Alien
+from laser import Laser
+
 
 class Game:
     def __init__(self):
@@ -10,11 +14,18 @@ class Game:
         self.alien_direction = 1
         self.alien_speed = 1 
 
+        #Alien Lasers
+        self.alien_lasers = pygame.sprite.Group()
+
     def run(self):
         #Aliens Run Code
         self.aliens.update(self.alien_direction * self.alien_speed)
         self.aliens.draw(screen)
         self.alien_finder()
+
+        #Alien Lasers Run Code
+        self.alien_lasers.update()
+        self.alien_lasers.draw(screen)
     
     def alien_grid(self, rows, cols, x_distance = 60, y_distance = 48, x_offset = 70, y_offset = 100):
         row_indices = np.repeat(np.arange(rows), cols)
@@ -53,6 +64,13 @@ class Game:
             for alien in self.aliens.sprites():
                 alien.rect.y += distance
 
+    def alien_shoot(self):
+        #Alien Shooting Mechanics
+        if self.aliens:
+            random_alien = choice(self.aliens.sprites())
+            laser_sprite = Laser(random_alien.rect.center, 6, screen_height)
+            self.alien_lasers.add(laser_sprite)
+
 
 if __name__ == '__main__':
     pygame.init()
@@ -62,11 +80,17 @@ if __name__ == '__main__':
     clock = pygame.time.Clock()
     game = Game()
 
+    ALIENLASER = pygame.USEREVENT + 1 
+    pygame.time.set_timer(ALIENLASER, 800)
+
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
+            
+            if event.type == ALIENLASER:
+                game.alien_shoot()
 
         screen.fill((30,30,30))
         game.run()
