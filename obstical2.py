@@ -35,7 +35,7 @@ class Obstacle:
 		for row in range(len(grid)):
 			for column in range(len(grid[0])):
 				if grid[row][column] == 1:
-					pos_x = x + column * 6
-					pos_y = y + row * 6
+					pos_x = x + column * 3
+					pos_y = y + row * 3
 					block = Block(pos_x, pos_y)
 					self.blocks_group.add(block)
