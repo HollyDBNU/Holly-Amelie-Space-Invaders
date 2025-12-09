@@ -7,11 +7,14 @@ class Game:
         #Alien Setup
         self.aliens = pygame.sprite.Group()
         self.alien_grid(rows=6, cols=8)
+        self.alien_direction = 1
+        self.alien_speed = 1 
 
     def run(self):
         #Aliens Run Code
-        self.aliens.update()
+        self.aliens.update(self.alien_direction * self.alien_speed)
         self.aliens.draw(screen)
+        self.alien_finder()
     
     def alien_grid(self, rows, cols, x_distance = 60, y_distance = 48, x_offset = 70, y_offset = 100):
         row_indices = np.repeat(np.arange(rows), cols)
@@ -32,8 +35,23 @@ class Game:
             alien_sprite = Alien(color, x, y)
             self.aliens.add(alien_sprite)
 
+    def alien_finder(self):
+        all_aliens = self.aliens.sprites()
 
-
+        #Alien Directional Changes
+        for alien in all_aliens:
+            if alien.rect.right >= screen_width:
+                self.alien_direction = -1
+                self.alien_move_down(2)
+            elif alien.rect.left <= 0:
+                self.alien_direction = 1
+                self.alien_move_down(2)
+    
+    def alien_move_down(self, distance):
+        #Move the aliens down
+        if self.aliens:
+            for alien in self.aliens.sprites():
+                alien.rect.y += distance
 
 
 if __name__ == '__main__':
