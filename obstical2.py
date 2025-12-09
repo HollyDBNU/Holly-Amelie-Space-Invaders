@@ -1,7 +1,7 @@
 import pygame
 
 # ---------- Constants ----------
-CELL_SIZE = 15  # size of each block cell (pixel width & height)
+CELL_SIZE = 6  # size of each block cell (pixel width & height)
 BLOCK_COLOR = (243,216,63)  # colour of the obstical
 
 # ---------- Block Sprite (single obstacle cell) ----------
