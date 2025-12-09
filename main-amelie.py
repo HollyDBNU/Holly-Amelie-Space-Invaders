@@ -13,6 +13,7 @@ class Game:
         self.alien_grid(rows=6, cols=8)
         self.alien_direction = 1
         self.alien_speed = 1 
+        self.previous_alien_count = len(self.aliens.sprites())
 
         #Alien Lasers
         self.alien_lasers = pygame.sprite.Group()
@@ -22,6 +23,7 @@ class Game:
         self.aliens.update(self.alien_direction * self.alien_speed)
         self.aliens.draw(screen)
         self.alien_finder()
+        self.check_alien_speed_up()
 
         #Alien Lasers Run Code
         self.alien_lasers.update()
@@ -71,6 +73,15 @@ class Game:
             laser_sprite = Laser(random_alien.rect.center, 6, screen_height)
             self.alien_lasers.add(laser_sprite)
 
+    def check_alien_speed_up(self):
+        #Speeds up aliens when killed
+        alien_count = len(self.aliens.sprites())
+
+        if alien_count < self.previous_alien_count:
+            self.alien_speed += 0.05
+        
+        self.previous_alien_count = alien_count
+
 
 if __name__ == '__main__':
     pygame.init()
@@ -91,6 +102,11 @@ if __name__ == '__main__':
             
             if event.type == ALIENLASER:
                 game.alien_shoot()
+
+            if event.type == pygame.KEYDOWN:
+              if event.key == pygame.K_SPACE and game.aliens:
+                random_alien = choice(game.aliens.sprites())
+                random_alien.kill()
 
         screen.fill((30,30,30))
         game.run()
