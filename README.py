@@ -6,10 +6,12 @@ from laser import Laser
 from random import choice
 from alien import MysteryShip
 
+# Creating Constants
 alien_rows = 6
 alien_cols = 8
 alien_timer = 800
 
+# Mystery Ship Event Timer
 MYSTERYSHIP = pygame.USEREVENT + 1
 pygame.time.set_timer(MYSTERYSHIP, random.randint(4000,8000))
 
@@ -19,6 +21,7 @@ class Game:
     self.screen = screen
     self.screen_width = screen_width
     self.screen_height = screen_height
+	  
     #Alien Setup
     self.aliens = pygame.sprite.Group()
     self.alien_grid(rows = alien_rows, cols = alien_cols)
