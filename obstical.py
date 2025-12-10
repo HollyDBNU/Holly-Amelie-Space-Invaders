@@ -50,13 +50,11 @@ def create_obstacles(num=4, top_y=420):
     spacing_between = usable_width // (num - 1) if num > 1 else 0
 
     for i in range(num):
-        # BUG #1 consequence: positions will not match intended layout
-        x = margin + i * spacing_between
+        x = margin - 20 + i * spacing_between
         y = top_y
         obs = Obstacle(x, y)
         obstacles.append(obs)
-
-        for b in obs.block_group:
+        for b in obs.blocks_group:
             blocks_group.add(b)
 
     return obstacles, blocks_group
