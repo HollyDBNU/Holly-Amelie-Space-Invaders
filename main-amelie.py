@@ -255,7 +255,6 @@ if __name__ == '__main__':
     game = Game()
 
     ALIENLASER = pygame.USEREVENT + 1 
-    pygame.time.set_timer(ALIENLASER, game.alien_timer_interval)
 
     while True:
         for event in pygame.event.get():
