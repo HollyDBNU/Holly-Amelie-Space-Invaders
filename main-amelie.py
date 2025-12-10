@@ -31,6 +31,19 @@ class Game:
         self.phase_per_alien = None
         self.wave_offset = 0
 
+        self.invader_font = pygame.font.Font("Fonts\Invaders-6RY1.ttf", 40)
+
+        self.inv_text = self.invader_font.render("x x x x x x x x x x ", True, (240,240,240))
+        self.inv_width = self.inv_text.get_width()
+        self.inv_height = self.inv_text.get_height()
+
+        self.inv_x1 = 0
+        self.inv_x2 = self.inv_width
+
+        self.inv_speed = -1
+
+        self.inv_y_offset = 20
+
     def run(self):
         #Start Menu
         if self.show_menu:
@@ -38,13 +51,12 @@ class Game:
             return
         
         mode_speed = self.alien_speed * self.speed_multiplier
-        self.aliens.update(self.alien_direction * mode_speed)
 
         if self.use_numpy:
             self.update_alien_pattern()
 
         #Aliens Run Code
-        self.aliens.update(self.alien_direction * self.alien_speed)
+        self.aliens.update(self.alien_direction * mode_speed)
         self.aliens.draw(screen)
         self.alien_finder()
         self.check_alien_speed_up()
@@ -77,11 +89,31 @@ class Game:
     def draw_start_menu(self):
         self.screen_fill_menu = (10,10,30)
         screen.fill(self.screen_fill_menu)
-        title_font = pygame.font.SysFont(None, 56)
-        btn_font = pygame.font.SysFont(None, 30)
+
+        title_font = pygame.font.Font("Fonts\RETROTECH.ttf", 56)
+        btn_font = pygame.font.Font("Fonts\RETROTECH.ttf", 30)
+
         title = title_font.render("SPACE INVADERS", True, (240,240,240))
+        title_rect = title.get_rect(center=(screen_width//2, 60 + title.get_height()//2))
         screen.blit(title, (screen_width//2 - title.get_width()//2, 60))
         
+        self.invader_initialised = True
+        
+        self.inv_x1 += self.inv_speed
+        self.inv_x2 += self.inv_speed
+
+        inv_y = title_rect.bottom + self.inv_y_offset
+
+        if self.inv_x1 + self.inv_width < 300:
+            self.inv_x1 = self.inv_x2 + self.inv_width
+        if self.inv_x2 + self.inv_width < 300:
+            self.inv_x2 = self.inv_x1 + self.inv_width
+
+        total_width = self.inv_width * 2
+        center_offset = screen_width // 2 - total_width // 2
+        screen.blit(self.inv_text, (self.inv_x1 + center_offset, inv_y))
+        screen.blit(self.inv_text, (self.inv_x2 + center_offset, inv_y))
+
         labels = [("Easy", (80,200,120)), ("Medium", (240,200,80)), ("Hard", (240, 120, 120))]
         btn_w, btn_h = 180, 50
         spacing = 20
@@ -95,8 +127,8 @@ class Game:
             screen.blit(txt, (rect.centerx - txt.get_width()//2, rect.centery - txt.get_height()//2))
             self.buttons.append((rect, text.lower()))
 
-        instruction = btn_font.render("Click a diffiiculty to start", True, (200,200,200))
-        screen.blit(instruction, (screen_width//2 - instruction.get_width()//2, start_y + 3*(btn_h + spacing)))
+        instruction = btn_font.render("Choose a diffiiculty to start", True, (200,200,200))
+        screen.blit(instruction, (screen_width//2 - instruction.get_width()//2, start_y + 4*(btn_h + spacing)))
 
     def menu_clicks(self, pos):
         for rect, key in self.buttons:
@@ -115,17 +147,17 @@ class Game:
         if level == 'easy':
             self.use_numpy = False
             self.pattern = 'easy'
-            self.speed_multiplier = 1
+            self.speed_multiplier = 0.75
             self.alien_timer_interval = 800
         elif level == 'medium':
             self.use_numpy = True
             self.pattern = 'sine'
-            self.speed_multiplier = 1.25
+            self.speed_multiplier = 1
             self.alien_timer_interval = 700
         elif level == 'hard':
             self.use_numpy = True
             self.pattern = 'sine+phase'
-            self.speed_multiplier = 1.5
+            self.speed_multiplier = 1.25
             self.alien_timer_interval = 600
 
         self.create_alien_positions()
