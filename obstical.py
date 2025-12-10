@@ -47,6 +47,7 @@ def create_obstacles(num=4, top_y=420):
     blocks_group = pygame.sprite.Group()
     margin = 80
     usable_width = SCREEN_WIDTH - 2 * margin
+    spacing_between = usable_width // (num - 1) if num > 1 else 0
 
     for i in range(num):
         # BUG #1 consequence: positions will not match intended layout
