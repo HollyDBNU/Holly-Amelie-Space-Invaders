@@ -22,7 +22,7 @@ class Block(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__()
         self.image = pygame.Surface((CELL_SIZE, CELL_SIZE))
-        self.image.fill((243,216,63))  # colour
+        self.image.fill((0,255,0))  # colour
         self.rect = self.image.get_rect(topleft=(x, y))
 
 # ---------- Define the Grid ----------#
