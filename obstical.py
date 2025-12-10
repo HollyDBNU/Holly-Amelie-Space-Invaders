@@ -39,3 +39,23 @@ class Obstacle:
 					pos_y = y + row * 3
 					block = Block(pos_x, pos_y)
 					self.blocks_group.add(block)
+
+
+# Creates obstacles at specified positions
+def create_obstacles(num=4, top_y=420):
+    obstacles = []
+    blocks_group = pygame.sprite.Group()
+    margin = 80
+    usable_width = SCREEN_WIDTH - 2 * margin
+
+    for i in range(num):
+        # BUG #1 consequence: positions will not match intended layout
+        x = margin + i * spacing_between
+        y = top_y
+        obs = Obstacle(x, y)
+        obstacles.append(obs)
+
+        for b in obs.block_group:
+            blocks_group.add(b)
+
+    return obstacles, blocks_group
