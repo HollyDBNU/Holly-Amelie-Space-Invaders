@@ -10,7 +10,7 @@ class Block(pygame.sprite.Sprite):
         super().__init__()
         # create a Surface so Pygame can render the block
         self.image = pygame.Surface((CELL_SIZE, CELL_SIZE))
-        self.image.fill((243,216,63))  # colour
+        self.image.fill((0,255,0))  # colour
         # set rect for positioning and collision
         self.rect = self.image.get_rect(topleft=(x, y))
 # ---------- Define the Grid ----------#
