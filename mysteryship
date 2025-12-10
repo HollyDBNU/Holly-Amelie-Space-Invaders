@@ -68,7 +68,7 @@ class Game:
         # --- collisions: player lasers vs mystery ship ---
         for player_laser in list(self.player.lasers_group):
             # BUG 1: dokill set to False so the mystery ship is NOT removed on hit
-            hit_mystery = pygame.sprite.spritecollide(player_laser, self.mystery_ship_group, dokill=False)
+            hit_mystery = pygame.sprite.spritecollide(player_laser, self.mystery_ship_group, dokill=True)
             if hit_mystery:
                 player_laser.kill()
                 self.score += 500
