@@ -79,7 +79,7 @@ class Game:
         self.screen.fill((30, 30, 30))
         self.blocks_group.draw(self.screen)
         # BUG 3: typo in attribute name — will raise AttributeError at draw time
-        self.mystery_ship.draw(self.screen)
+        self.mystery_ship_group.draw(self.screen)
         self.enemy_lasers.draw(self.screen)
         self.player_group.draw(self.screen)
         self.player.lasers_group.draw(self.screen)
