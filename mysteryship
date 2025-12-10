@@ -1,1 +1,105 @@
+import pygame, sys, random
 
+pygame.init()
+
+# --- Background Music --- Ensure to add to main game, above requirments
+pygame.mixer.music.load("Graphics/music.ogg")
+pygame.mixer.music.play(-1)
+pygame.mixer.music.set_volume(0.5)
+
+
+# Timed Game appearance
+MYSTERYSHIP = pygame.USEREVENT + 2
+pygame.time.set_timer(MYSTERYSHIP, random.randint(4000, 8000))
+
+class MysteryShip(pygame.sprite.Sprite):
+    def __init__(self, screen_width, y_position, speed=-3):
+        super().__init__()
+
+        try:
+            self.image = pygame.image.load("Graphics/mystery.png").convert_alpha()
+        except:
+            self.image = pygame.Surface((60, 25))
+            self.image.fill((255, 200, 50))
+
+        self.rect = self.image.get_rect(midleft=(screen_width + 40, y_position))
+        self.speed = speed
+        self.screen_width = screen_width
+
+    def update(self):
+        self.rect.x += self.speed
+        # BUG 2: premature removal — uses left instead of right, so the ship is removed while still visible
+        if self.rect.left < 0:
+            self.kill()
+
+
+class Game:
+    def __init__(self, screen):
+        self.screen = screen
+        # Explosion sound for mystery ship                                                                 
+        try:
+           self.explosion_sound = pygame.mixer.Sound("Graphics/explosion.ogg")
+           self.explosion_sound.set_volume(1.0)
+        except:
+            self.explosion_sound = None
+
+        # Mystery ship
+        self.mystery_ship_group = pygame.sprite.Group()                                               
+
+        # Obstacles
+        self.obstacles, self.blocks_group = create_obstacles(num=4, top_y=420)
+
+        # simple score
+        self.score = 0
+
+    # Create mystery ship                                                                              
+    def create_mystery_ship(self):
+        self.mystery_ship_group.add(MysteryShip(SCREEN_WIDTH, 60))
+  
+
+    #Important for updating frames per game
+    def run(self):
+        # update moving things
+        self.player_group.update()
+        self.enemy_lasers.update()
+        self.mystery_ship_group.update()
+        self.player.lasers_group.update()
+
+        # --- collisions: player lasers vs mystery ship ---
+        for player_laser in list(self.player.lasers_group):
+            # BUG 1: dokill set to False so the mystery ship is NOT removed on hit
+            hit_mystery = pygame.sprite.spritecollide(player_laser, self.mystery_ship_group, dokill=False)
+            if hit_mystery:
+                player_laser.kill()
+                self.score += 500
+                if self.explosion_sound:
+                    self.explosion_sound.play()
+
+        # draws everything
+        self.screen.fill((30, 30, 30))
+        self.blocks_group.draw(self.screen)
+        # BUG 3: typo in attribute name — will raise AttributeError at draw time
+        self.mystery_ship.draw(self.screen)
+        self.enemy_lasers.draw(self.screen)
+        self.player_group.draw(self.screen)
+        self.player.lasers_group.draw(self.screen)
+
+        font = pygame.font.Font("Graphics/monogram.ttf", 24)
+        score_surf = font.render(f"Score: {self.score}", True, (200, 200, 200))
+        self.screen.blit(score_surf, (10, 10))
+
+# Main Game Loop
+game = Game(screen)
+
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+
+        if event.type == MYSTERYSHIP:
+            game.create_mystery_ship()
+            pygame.time.set_timer(MYSTERYSHIP, random.randint(4000, 8000))
+
+        if event.type == ALIENLASER:
+            game.alien_shoot_from_random()
