@@ -235,6 +235,13 @@ class Game:
             for alien in self.aliens.sprites():
                 alien.rect.y += distance
 
+                if self.use_numpy:
+                    if not hasattr(alien, "initial_y"):
+                        alien.initial_y = alien.rect.y
+                    else:
+                        alien.initial_y += distance
+
+
         if self.use_numpy:
             self.create_alien_positions()
 
