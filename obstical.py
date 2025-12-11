@@ -10,7 +10,7 @@ class Block(pygame.sprite.Sprite):
         super().__init__()
         # create a Surface so Pygame can render the block
         self.image = pygame.Surface((CELL_SIZE, CELL_SIZE))
-        self.image.fill((243,216,63))  # colour
+        self.image.fill((0,255,0))  # colour
         # set rect for positioning and collision
         self.rect = self.image.get_rect(topleft=(x, y))
 # ---------- Define the Grid ----------#
@@ -39,3 +39,22 @@ class Obstacle:
 					pos_y = y + row * 3
 					block = Block(pos_x, pos_y)
 					self.blocks_group.add(block)
+
+
+# Creates obstacles at specified positions
+def create_obstacles(num=4, top_y=420):
+    obstacles = []
+    blocks_group = pygame.sprite.Group()
+    margin = 80
+    usable_width = SCREEN_WIDTH - 2 * margin
+    spacing_between = usable_width // (num - 1) if num > 1 else 0
+
+    for i in range(num):
+        x = margin - 20 + i * spacing_between
+        y = top_y
+        obs = Obstacle(x, y)
+        obstacles.append(obs)
+        for b in obs.blocks_group:
+            blocks_group.add(b)
+
+    return obstacles, blocks_group
