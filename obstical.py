@@ -1,5 +1,7 @@
 import pygame
 
+SCREEN_WIDTH
+
 # ---------- Constants ----------
 CELL_SIZE = 6  # size of each block cell (pixel width & height)
 BLOCK_COLOR = (243,216,63)  # colour of the obstical
