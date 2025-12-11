@@ -1,112 +1,139 @@
-# Space_Invaders_Python
+# main.py
+import pygame
+import sys
+import random
 
-import pygame, sys
+# Import your modules (these should be in the same folder)
 from alien import Alien
 from laser import Laser
-from random import choice
-from alien import MysteryShip
+from mysteryship import MysteryShip
+from obstacle import create_obstacles
+from Spaceship import Spaceship
 
-# Creating Constants
-alien_rows = 6
-alien_cols = 8
-alien_timer = 800
+# Constants
+pygame.init()
 
-# Mystery Ship Event Timer
-MYSTERYSHIP = pygame.USEREVENT + 1
-pygame.time.set_timer(MYSTERYSHIP, random.randint(4000,8000))
+SCREEN_WIDTH = 800
+SCREEN_HEIGHT = 600
+FPS = 60
 
+# Custom events
+ALIENLASER = pygame.USEREVENT + 1
+MYSTERYSHIP = pygame.USEREVENT + 2
+
+# Timers
+pygame.time.set_timer(ALIENLASER, 1200)            # aliens shoot about every 1.2s
+pygame.time.set_timer(MYSTERYSHIP, random.randint(4000, 8000))
+
+# Setup screen + clock
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+pygame.display.set_caption("Space Game")
+clock = pygame.time.Clock()
+
+# Load music safely (optional)
+try:
+    pygame.mixer.music.load("Graphics/music.ogg")
+    pygame.mixer.music.play(-1)
+    pygame.mixer.music.set_volume(0.5)
+except Exception:
+    # okay to run without music
+    pass
+
+
+# -----------------------------
+# Game class (orchestrates everything)
+# -----------------------------
 class Game:
-  def __init__(self, screen, screen_width, screen_height):
-    #Screen Setup
-    self.screen = screen
-    self.screen_width = screen_width
-    self.screen_height = screen_height
-	  
-    #Alien Setup
-    self.aliens = pygame.sprite.Group()
-    self.alien_grid(rows = alien_rows, cols = alien_cols)
-    self.alien_direction = 1 
-    self.alien_speed = 1
-    self.previous_alien_count = len(self.aliens.sprites())
-    self.mystery_ship_group = pygame.sprite.GroupSingle()
-  
-    #Alien Lasers
-    self.alien_lasers = pygame.sprite.Group()
+    def __init__(self, screen):
+        self.screen = screen
 
-  def run(self):
-    #Aliens Run Code
-    self.aliens.update(self.alien_direction * self.alien_speed)
-    self.alien_finder()
-    self.aliens.draw(self.screen)
-    self.check_alien_speed_up() 
+        # Player
+        self.player = Spaceship(SCREEN_WIDTH, SCREEN_HEIGHT, offset=0)
+        self.player_group = pygame.sprite.GroupSingle(self.player)
 
-    #Lasers Run Code
-    self.alien_lasers.update()
-    self.alien_lasers.draw(self.screen)
+        # Aliens (start empty — you can spawn them later)
+        self.aliens = pygame.sprite.Group()
 
-  #Alien Grid Setup
-  def alien_grid(self, rows, cols, x_distance = 60, y_distance = 48, x_offset = 70, y_offset = 100):
-    #Arranging the Aliens in Rows and Columns
-    for row in range(rows):
-      for col in range(cols):
-        x = col * x_distance + x_offset
-        y = row * y_distance + y_offset
+        # Enemy lasers (from aliens)
+        self.enemy_lasers = pygame.sprite.Group()
 
-        
-        #Colour Coding the Aliens
-        if row == 0: alien_sprite = Alien('yellow', x, y)
-        elif 1 <= row <=2: alien_sprite = Alien('green', x, y)
-        else: alien_sprite = Alien('red', x, y)
-        self.aliens.add(alien_sprite)
+        # Player lasers are inside player.lasers_group
+        # Mystery ship
+        self.mystery_ship_group = pygame.sprite.Group()
 
-  def alien_finder(self):
-    all_aliens = self.aliens.sprites()
+        # Obstacles
+        self.obstacles, self.blocks_group = create_obstacles(num=4, top_y=420, screen_width=SCREEN_WIDTH)
 
-    #Alien Directional Changes
-    for alien in all_aliens:
-      if alien.rect.right >= screen_width:
-        self.alien_direction = -1
-        self.alien_down(2)
-      elif alien.rect.left <= 0:
-        self.alien_direction = 1
-        self.alien_down(2)
+        # Score
+        self.score = 0
 
-  def alien_down(self, distance):
-    #Moves the aliens down
-    if self.aliens:
-      for alien in self.aliens.sprites():
-        alien.rect.y += distance
+        # Explosion sound
+        try:
+            pygame.mixer.Sound("Graphics/explosion.ogg")
+            self.explosion_sound.set_volume(1.0)
+        except Exception:
+            self.explosion_sound = None
 
-  def check_alien_speed_up(self):
-    #Speeds up aliens when killed
-    alien_count = len(self.aliens.sprites())
+    def create_mystery_ship(self):
+        self.mystery_ship_group.add(MysteryShip(SCREEN_WIDTH, 60))
 
-    if alien_count < self.previous_alien_count:
-      self.alien_speed += 0.05
+    def alien_shoot_from_random(self):
+        if len(self.aliens) == 0:
+            return
+        shooter = random.choice(self.aliens.sprites())
+        # create a downward laser: use positive speed but Laser.update subtracts speed
+        # so pass negative speed to make it move down
+        laser = Laser(shooter.rect.center, speed=-5, screen_height=SCREEN_HEIGHT)
+        self.enemy_lasers.add(laser)
 
-    self.previous_alien_count = alien_count
+    def run(self):
+        # update
+        self.player_group.update()
+        self.enemy_lasers.update()
+        self.mystery_ship_group.update()
+        self.player.lasers_group.update()
+        self.aliens.update()
 
-  def alien_shoot(self):
-    #Alien Shooting Mechanics
-    if self.aliens:
-      random_alien = choice(self.aliens.sprites())
-      laser_sprite = Laser(random_alien.rect.center, 6, screen_height)
-      self.alien_lasers.add(laser_sprite)
+        # collisions: player lasers vs mystery ship (remove ship on hit)
+        # dokill=True ensures the mystery ship is removed
+        for player_laser in list(self.player.lasers_group):
+            hit_mystery = pygame.sprite.spritecollide(player_laser, self.mystery_ship_group, dokill=True)
+            if hit_mystery:
+                player_laser.kill()
+                self.score += 500
+                if self.explosion_sound:
+                    self.explosion_sound.play()
 
-  def create_mystery_ship(self):
-		self.mystery_ship_group.add(MysteryShip(self.screen_width, self.offset))
+        # collisions: enemy lasers vs player
+        if pygame.sprite.spritecollide(self.player, self.enemy_lasers, dokill=True):
+            # placeholder: you can add lives or end-game logic here
+            print("Player hit!")
 
-if __name__ == '__main__':
-    pygame.init()
-    screen_width = 600
-    screen_height = 600
-    screen = pygame.display.set_mode((screen_width, screen_height))
-    clock = pygame.time.Clock()
+        # draw
+        self.screen.fill((30, 30, 30))
+        self.blocks_group.draw(self.screen)
+        self.mystery_ship_group.draw(self.screen)
+        self.aliens.draw(self.screen)
+        self.enemy_lasers.draw(self.screen)
+        self.player_group.draw(self.screen)
+        self.player.lasers_group.draw(self.screen)
 
-    game = Game(screen, screen_width, screen_height)
+        # HUD
+        try:
+            font = pygame.font.Font("Graphics/monogram.ttf", 24)
+        except Exception:
+            font = pygame.font.Font(None, 24)
+        score_surf = font.render(f"Score: {self.score}", True, (200, 200, 200))
+        self.screen.blit(score_surf, (10, 10))
 
-    ALIENLASER = pygame.USEREVENT + 1
-    pygame.time.set_timer(ALIENLASER, 800)
+        pygame.display.flip()
+
+
+# -----------------------------
+# Main loop
+# -----------------------------
+def main():
+    game = Game(screen)
 
     while True:
         for event in pygame.event.get():
@@ -114,20 +141,16 @@ if __name__ == '__main__':
                 pygame.quit()
                 sys.exit()
 
-            if event.type == ALIENLASER:
-              game.alien_shoot()
-
-            if event.type == MYSTERYSHIP and game.run:
+            if event.type == MYSTERYSHIP:
                 game.create_mystery_ship()
-                pygame.time.set_timer(MYSTERYSHIP, random.randint(4000,8000))
-            
-            if event.type == pygame.KEYDOWN:
-              if event.key == pygame.K_SPACE and game.aliens:
-                random_alien = choice(game.aliens.sprites())
-                random_alien.kill()
-        
-        screen.fill((30,30,30))
-        game.run()
+                pygame.time.set_timer(MYSTERYSHIP, random.randint(4000, 8000))
 
-        pygame.display.flip()
-        clock.tick(60)
+            if event.type == ALIENLASER:
+                game.alien_shoot_from_random()
+
+        game.run()
+        clock.tick(FPS)
+
+
+if __name__ == "__main__":
+    main()
