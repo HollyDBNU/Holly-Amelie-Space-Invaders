@@ -13,7 +13,10 @@ class Game:
         self.alien_grid(rows=6, cols=8)
         self.alien_direction = 1
         self.alien_speed = 1 
+        self.base_alien_speed = 1
+        self.max_alien_speed = 5
         self.previous_alien_count = len(self.aliens.sprites())
+        self.alien_timer_interval = 800
 
         #Alien Lasers
         self.alien_lasers = pygame.sprite.Group()
@@ -24,7 +27,6 @@ class Game:
         self.use_numpy = False
         self.pattern = 'Easy'
         self.speed_multiplier = 1
-        self.alien_timer_interval = 800
 
         self.alien_positions = None
         self.base_y = None
@@ -50,13 +52,13 @@ class Game:
             self.draw_start_menu()
             return
         
-        mode_speed = self.alien_speed * self.speed_multiplier
+        self.mode_speed = self.alien_speed * self.speed_multiplier
 
         if self.use_numpy:
             self.update_alien_pattern()
 
         #Aliens Run Code
-        self.aliens.update(self.alien_direction * mode_speed)
+        self.aliens.update(self.alien_direction * self.mode_speed)
         self.aliens.draw(screen)
         self.alien_finder()
         self.check_alien_speed_up()
@@ -72,7 +74,8 @@ class Game:
         x_positions = col_indices * x_distance + x_offset
         y_positions = row_indices * y_distance + y_offset
 
-        for i in range(len(x_positions)):
+        total = len(x_positions)
+        for i in range(total):
             row = row_indices[i]
             x = x_positions[i]
             y = y_positions[i]
@@ -82,6 +85,8 @@ class Game:
             else: color = 'red'
 
             alien_sprite = Alien(color, x, y)
+            alien_sprite.initial_y = y
+            alien_sprite.phase = (i / total)*(2.0 * np.pi)
             self.aliens.add(alien_sprite)
 
         self.create_alien_positions()
@@ -147,21 +152,25 @@ class Game:
         if level == 'easy':
             self.use_numpy = False
             self.pattern = 'easy'
-            self.speed_multiplier = 0.75
+            self.speed_multiplier = 1
             self.alien_timer_interval = 800
+            self.base_alien_speed = 0.9
         elif level == 'medium':
             self.use_numpy = True
             self.pattern = 'sine'
-            self.speed_multiplier = 1
+            self.speed_multiplier = 1.25
             self.alien_timer_interval = 700
+            self.base_alien_speed = 1
         elif level == 'hard':
             self.use_numpy = True
             self.pattern = 'sine+phase'
-            self.speed_multiplier = 1.25
+            self.speed_multiplier = 1.5
             self.alien_timer_interval = 600
+            self.base_alien_speed = 1.1
+        
+        self.alien_speed = float(self.base_alien_speed)
 
         self.create_alien_positions()
-
         pygame.time.set_timer(ALIENLASER, self.alien_timer_interval)
 
     def create_alien_positions(self):
@@ -171,11 +180,14 @@ class Game:
             self.base_y = np.zeros((0,), dtype=float)
             self.phase_per_alien = np.zeros((0,), dtype=float)
             return
+        
         pos = np.array([[s.rect.x, s.rect.y] for s in sprites], dtype=float)
         self.alien_positions = pos
-        self.base_y = pos[:,1].copy()
-        self.phase_per_alien = np.linspace(0, np.pi*2, len(self.alien_positions))
-        self.wave_offset = 0.0
+        self.base_y = np.array([getattr(s, "initial_y", s.rect.y) for s in sprites], dtype=float)
+        self.phase_per_alien = np.array([getattr(s, "phase", idx * 2*np.pi / len(sprites))
+                                    for idx, s in enumerate(sprites)], dtype=float)
+
+        
     
     def update_alien_pattern(self):                     
         if self.alien_positions is None or len(self.alien_positions) == 0:
@@ -187,14 +199,14 @@ class Game:
             return
 
         elif self.pattern == 'sine':
-            amplitude = 6.0
+            amplitude = 3.0
             phases = self.phase_per_alien
             wave = np.sin(self.wave_offset + phases) * amplitude
             self.alien_positions[:,1] = self.base_y + wave
             self.wave_offset += 0.08
 
         elif self.pattern == 'sine+phase':
-            amplitude = 8.0
+            amplitude = 5.0
             phases = self.phase_per_alien * 2.0
             wave = np.sin(self.wave_offset + phases) * amplitude
             noise = (np.random.rand(N) - 0.5) * 1.5
@@ -223,6 +235,13 @@ class Game:
             for alien in self.aliens.sprites():
                 alien.rect.y += distance
 
+                if self.use_numpy:
+                    if not hasattr(alien, "initial_y"):
+                        alien.initial_y = alien.rect.y
+                    else:
+                        alien.initial_y += distance
+
+
         if self.use_numpy:
             self.create_alien_positions()
 
@@ -238,7 +257,11 @@ class Game:
         alien_count = len(self.aliens.sprites())
 
         if alien_count < self.previous_alien_count:
-            self.alien_speed += 0.05
+            base_speed_increase = 0.03
+            speed_increase = base_speed_increase * self.speed_multiplier
+
+            self.alien_speed = min(self.alien_speed + speed_increase, self.max_alien_speed)
+            print('Speed', self.alien_speed)
 
             if self.use_numpy:
                 self.create_alien_positions()    
