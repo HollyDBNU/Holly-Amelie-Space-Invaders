@@ -13,7 +13,7 @@ class Spaceship(pygame.sprite.Sprite):
 		self.rect = self.image.get_rect(midbottom = ((self.screen_width + self.offset)/2, self.screen_height))
 		self.speed = 6
 		# Laser Setup
-		self.lasers_group = pygame.sprite.Group()
+		self.lasers_group.update()
 		self.laser_ready = True
 		self.laser_time = 0
 		self.laser_delay = 300
@@ -38,7 +38,7 @@ class Spaceship(pygame.sprite.Sprite):
 	def update(self):
 		self.get_user_input()
 		self.constrain_movement()
-		self.lasers_group.update()
+		self.laser_group.update()
 		self.recharge_laser()
 # Keep Player Inside Screen Bounds
 	def constrain_movement(self):
@@ -54,7 +54,8 @@ class Spaceship(pygame.sprite.Sprite):
 				self.laser_ready = True
 # Reset Laser After Cooldown
 	def reset(self):
-		self.rect = self.image.get_rect(midbottom = ((self.screen_width + self.offset)/2, self.screen_height))
+		self.rect = self.image.get_rect(midbottom = (self.screen_width / 2, self.screen_height)
 		self.lasers_group.empty()
 		self.laser_ready = True
 		self.laser_time = 0
+		
