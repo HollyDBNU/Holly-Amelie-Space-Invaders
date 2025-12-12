@@ -1,4 +1,5 @@
-# main.py
+# SPACEINVADERS.py
+
 import pygame
 import sys
 import random
@@ -22,7 +23,7 @@ ALIENLASER = pygame.USEREVENT + 1
 MYSTERYSHIP = pygame.USEREVENT + 2
 
 # Timers
-pygame.time.set_timer(ALIENLASER, 1200)            # aliens shoot about every 1.2s
+pygame.time.set_timer(ALIENLASER, 1200)    
 pygame.time.set_timer(MYSTERYSHIP, random.randint(4000, 8000))
 
 # Setup screen + clock
@@ -30,7 +31,7 @@ screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Space Game")
 clock = pygame.time.Clock()
 
-# Load music safely (optional)
+# Load music
 try:
     pygame.mixer.music.load("Graphics/music.ogg")
     pygame.mixer.music.play(-1)
@@ -40,9 +41,9 @@ except Exception:
     pass
 
 
-# -----------------------------
-# Game class (orchestrates everything)
-# -----------------------------
+
+# Game class 
+
 class Game:
     def __init__(self, screen):
         self.screen = screen
@@ -118,7 +119,7 @@ class Game:
         self.player_group.draw(self.screen)
         self.player.lasers_group.draw(self.screen)
 
-        # HUD
+        # Design 
         try:
             font = pygame.font.Font("Graphics/monogram.ttf", 24)
         except Exception:
@@ -128,10 +129,8 @@ class Game:
 
         pygame.display.flip()
 
-
-# -----------------------------
 # Main loop
-# -----------------------------
+
 def main():
     game = Game(screen)
 
