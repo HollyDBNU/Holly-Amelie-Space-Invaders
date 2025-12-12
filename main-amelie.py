@@ -234,14 +234,14 @@ class Game:
         if self.aliens:
             for alien in self.aliens.sprites():
                 alien.rect.y += distance
-
-                if self.use_numpy:
-                    if not hasattr(alien, "initial_y"):
-                        alien.initial_y = alien.rect.y
-                    else:
-                        alien.initial_y += distance
-
-
+        
+                if self.use_numpy: 
+                    if not hasattr(alien, "initial_y"): 
+                        alien.initial_y = alien.rect.y 
+            
+                    else: 
+                        alien.initial_y += distance 
+        
         if self.use_numpy:
             self.create_alien_positions()
 
@@ -261,7 +261,7 @@ class Game:
             speed_increase = base_speed_increase * self.speed_multiplier
 
             self.alien_speed = min(self.alien_speed + speed_increase, self.max_alien_speed)
-            print('Speed', self.alien_speed)
+            print('Speed:', self.alien_speed, 'Alien Count:', alien_count)
 
             if self.use_numpy:
                 self.create_alien_positions()    
@@ -290,6 +290,7 @@ if __name__ == '__main__':
             
             if event.type == ALIENLASER:
                 game.alien_shoot()
+                
 
             if event.type == pygame.KEYDOWN:
               if event.key == pygame.K_SPACE and game.aliens:
@@ -303,3 +304,4 @@ if __name__ == '__main__':
         game.run()
         pygame.display.flip()
         clock.tick(60)
+
